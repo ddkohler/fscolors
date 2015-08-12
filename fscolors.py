@@ -8,11 +8,13 @@ import os#, sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.colors as mplcolors
+#import matplotlib.colors as mplcolors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.interpolate import griddata, interp1d
 import matplotlib.gridspec as grd
+from . import cm
 
+# override default dotted contours for negative values
 matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 
 #----------------------------STORE POSSIBLE PLOTTING AXES----------------------------
@@ -52,9 +54,9 @@ units = {
         'z1':   (['z1', 'd1'], 0.00005, 'mm', r'$\mathrm{z_1 (mm)}$', position),
         'z2':   (['z2', 'd2'], 0.00005, 'mm', r'$\mathrm{z_2 (mm)}$', position),
         'dref': (['dref'], 25.0, 'fs', r'$\mathrm{d_{ref} (fs)}$', None),
-        'd1':   (['d1'], 1.0, 'fs', r'$\mathrm{\tau_{2^{\prime}2} (fs)}$', -1),
+        'd1':   (['d1'], 1.0, 'fs', r'$\mathrm{\tau_{22^{\prime}} (fs)}$', -1),
         'ds1':  (['d1'], 1.0, 'fs', r'$d_1$', None),
-        'd2':   (['d2'], 1.0, 'fs', r'$\mathrm{\tau_{12} (fs)}$', None),
+        'd2':   (['d2'], 1.0, 'fs', r'$\mathrm{\tau_{21} (fs)}$', None),
         'd2real':(['d2', 'dref'], 2.0, 'fs', r'$\mathrm{\tau_{21} (fs)}$', difference),
         'ai0':  (['ai0'], 0.0, 'V', 'Signal 0', None),
         'ai1':  (['ai1'], 0.0, 'V', 'Signal 1', None),
@@ -138,52 +140,7 @@ class Dat:
     }
     # colormaps
 
-    blaise_cm = ['#0000FF',
-                '#002AFF',
-                '#0055FF',
-                '#007FFF',
-                '#00AAFF',
-                '#00D4FF',
-                '#00FFFF',
-                '#FFFFFF',
-                '#FFFF00',
-                '#FFD400',
-                '#FFAA00',
-                '#FF7F00',
-                '#FF5500',
-                '#FF2A00',
-                '#FF0000']
-
-    signed_cm = ['#0000FF',# blue
-                '#00BBFF', # blue-aqua
-                '#00FFFF', # aqua
-                '#FFFFFF', # white
-                '#FFFF00', # yellow
-                '#FFBB00', # orange
-                '#FF0000'] # red   
-
-    skye_amp = ['#000000', # white
-                '#0000FF', # blue
-                #'#00FFFF', # aqua
-                '#00FF00', # lime
-                '#FFFFFF', # black
-                '#FFFF00', # yellow
-                '#FF0000', # red
-                '#881111'] # a dark red (no standard name)
-
-    wrightcolors = ['#FFFFFF', # white
-                '#0000FF', # blue
-                '#00FFFF', # aqua
-                '#00FF00', # lime
-                '#FFFF00', # yellow
-                '#FF0000', # red
-                '#881111'] # a dark red (no standard name)
-    # define colormaps
-    wrightcm = mplcolors.LinearSegmentedColormap.from_list('wright',wrightcolors)
-    mycm = wrightcm
-    altcm = mplcolors.LinearSegmentedColormap.from_list('signed',signed_cm)
-    altcm2 = mplcolors.LinearSegmentedColormap.from_list('signed2',blaise_cm)
-    ampcm = mplcolors.LinearSegmentedColormap.from_list('skye',skye_amp)
+    mycm = cm.chw2 #wrightcm
     debug=False
     # font style attributes
     font_size = 14
@@ -201,7 +158,8 @@ class Dat:
     # attributes of contour lines
     contour_n = 9
     contour_kwargs={'colors':'k',
-                    'linewidths':2}
+                    'linewidths':2,
+                    'alpha':0.1}
     # attributes of sideplots
     side_plot_proj_kwargs={'linewidth':2}
     side_plot_proj_linetype = 'b'
@@ -523,18 +481,22 @@ class Dat:
                 ticki <= max(self.znull, self.zi_norm.max())]
             self.p1.colorbar(self.cax, ticks=ticks, cax=ax_cb)
         elif self.alt_zi == '+':
-            ticks = np.linspace(self.znull,self.zmax,11)
+            ticks = np.linspace(self.zmin,
+                                self.zmax,
+                                self.contour_n + 2)
             # find the intersection of the range of data displayed and ticks
             self.p1.colorbar(self.cax, ticks=ticks, cax=ax_cb)
         elif self.alt_zi == '-':
-            ticks = np.linspace(self.zmin,self.znull,11)
+            ticks = np.linspace(self.zmin,
+                                self.zmax,
+                                self.contour_n + 2)
             # find the intersection of the range of data displayed and ticks
             self.p1.colorbar(self.cax, ticks=ticks, cax=ax_cb)
         elif self.alt_zi == 'amp':
-            ticks = np.linspace(0,1,11)
             ampmin = self.floor
             ampmax = self.ceiling
-            ticks = np.linspace(ampmin,ampmax,num=11)
+            ticks = np.linspace(ampmin, ampmax,
+                                num=self.contour_n + 2)
             # determine how much precision is necessary in the ticks:
             self.p1.colorbar(self.cax, ticks=ticks, cax=ax_cb)
         elif self.alt_zi == 'log':
@@ -927,12 +889,11 @@ class Dat:
             tol = max(tol, 1e-1)
             self.yi = np.linspace(min(ys)+tol,max(ys)-tol,
                                   num=(len(ys) + (len(ys)-1)*(grid_factor-1)))
-            
-
         x_col, y_col = self.xy 
         # grid each of our signal channels
         for key in self.zvars:
             zcol = self.datCols[key]            
+            #print key, zcol
             #make fill value znull right now (instead of average value)
             fill_value = self.znull #self.data[zcol].sum()  / len(self.data[zcol])
             grid_i = griddata((x_col,y_col), self.data[zcol], 
@@ -976,6 +937,7 @@ class Dat:
             if npts is negative, will sample from the end of the zi slice
             use aggregate if you want to offset all data by the same average--
                 as opposed to slice by slice
+            returns the offset
         """
         # verify npts not zero
         npts = int(npts)
@@ -1072,6 +1034,7 @@ class Dat:
             self.zvars[self.zvar] = self.zi
         except AttributeError: # not all Dat instances have zvars
             pass
+        return offset
 
     def normalize(self,ntype=None,
                   x_file=None,y_file=None,
@@ -1327,14 +1290,14 @@ class Dat:
             znull = None
             if alt_zi == '+':
                 znull = self.znull
-                zi_norm = np.ma.masked_less(self.zi, znull)
-                zi_norm = zi_norm.filled(znull)
+                zi_norm = self.zi.copy()
+                zi_norm[zi_norm < znull] = znull
                 lbound = znull
                 ubound = self.zmax
             elif alt_zi == '-':
                 znull = self.znull
-                zi_norm = np.ma.masked_greater(self.zi, znull)
-                zi_norm = zi_norm.filled(znull)
+                zi_norm = self.zi.copy()
+                zi_norm[zi_norm > znull] = znull
                 lbound = self.zmin
                 ubound = znull
             else:
@@ -1404,29 +1367,27 @@ class Dat:
                     self.floor = floor
                 else:
                     self.floor = 0.
-                zi_norm = np.ma.masked_less_equal(zi_norm, self.floor)
-                zi_norm = zi_norm.filled(self.floor)
+                zi_norm[zi_norm <= self.floor] = self.floor
                 if ceiling is not None:
                     self.ceiling = ceiling
                 else:
                     self.ceiling = np.sqrt(self.zmax - self.znull) # zi_norm.max()
-                zi_norm = np.ma.masked_greater(zi_norm, self.ceiling)
-                zi_norm = zi_norm.filled(self.ceiling)
+                zi_norm[zi_norm > self.ceiling] = self.ceiling
             elif alt_zi == 'log':
                 # for log scale
-                zi_norm = np.log10(zi_norm)
                 if floor is not None:
                     self.floor = floor
                 else:
                     self.floor = zi_norm.min()
-                zi_norm = np.ma.masked_less_equal(zi_norm, self.floor)
-                zi_norm = zi_norm.filled(self.floor)
+                zi_norm[zi_norm <= 10**self.floor] = 10**self.floor
                 if ceiling is not None:
                     self.ceiling = ceiling
                 else:
                     self.ceiling = zi_norm.max()
-                zi_norm = np.ma.masked_greater(zi_norm, self.ceiling)
-                zi_norm = zi_norm.filled(self.ceiling)
+                zi_norm[zi_norm > 10**self.ceiling] = 10**self.ceiling
+                zi_norm = np.log10(zi_norm)
+                #zi_norm = np.ma.masked_greater(zi_norm, self.ceiling)
+                #zi_norm = zi_norm.filled(self.ceiling)
             levels = np.linspace(self.floor, self.ceiling, num=200)
         else:
             print 'alt_zi type {0} not recognized; plotting on raw scale'.format(alt_zi)
@@ -1462,7 +1423,10 @@ class Dat:
         if contour:
             # normalize to zmin and zmax if they are smaller than the bounds
             # of the data
-            plt.contour(self.xi, self.yi, self.zi_norm, self.contour_n, 
+            plt.contour(self.xi, self.yi, self.zi_norm, 
+                        levels=np.linspace(self.zi_norm.min(), 
+                                           self.zi_norm.max(), 
+                                           num=self.contour_n+2)[1:-1], 
                         **self.contour_kwargs)
         #matplotlib.axes.rcParams.viewitems
         plt.xticks(rotation=45)
@@ -1911,7 +1875,7 @@ class NIRscan:
         fx = interp1d(x,y)
         return fx
         
-    def plot(self, scantype='default', xtype='wn'):
+    def plot(self, scantype='default', xtype='wn', n=20):
         self.ax1 = plt.subplot(211)
         matplotlib.rcParams.update({
             'font.size':self.font_size
@@ -1933,7 +1897,7 @@ class NIRscan:
         for i in range(len(self.data)):
             self.ax2 = plt.subplot(212, sharex=self.ax1)
             preData = self.data[i][2]
-            preData = self._smooth(preData)
+            if n > 1: preData = self._smooth(preData, n=n)
             name = self.data[i][0]
             #compute second derivative
             plotData = np.array([10**7 / preData[0][:-2], np.diff(preData[1], n=2)])
@@ -1954,7 +1918,7 @@ class NIRscan:
         xypairs.sort()
         return zip(*xypairs)
         
-    def _smooth(self, dat1, n=20, window_type='default'):
+    def _smooth(self, dat1, n=1, window_type='default'):
         #data is an array of type [xlis,ylis]        
         #smooth to prevent 2nd derivative from being noisy
         for i in range(n, len(dat1[1])-n):
@@ -2150,7 +2114,7 @@ def find_name(fname, suffix):
     return fname
 
 def make_tune(obj, set_var, fname=None, amp='int', center='exp_val', fit=True,
-              offset=None, write=True):
+              offset=None):
     """
         function for turning dat scans into tune files using exp value
 
