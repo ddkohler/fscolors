@@ -1,15 +1,4 @@
-<<<<<<< HEAD
-#<<<<<<< HEAD
-#from . import fscolors
-from .fscolors import *
-from . import cm
-#from cm import *
-#=======
-=======
->>>>>>> fe0820c896175a8f8113a2eb99eeb34aaec7c0e2
 ### import ####################################################################
-
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from . import fscolors
@@ -52,7 +41,3 @@ except:
 # c - bugfix
 # d - git sha key
 __version__ = _config.get('main', 'version') + '.' + _sha[:7]
-<<<<<<< HEAD
->>>>>>> fe0820c896175a8f8113a2eb99eeb34aaec7c0e2
-=======
->>>>>>> fe0820c896175a8f8113a2eb99eeb34aaec7c0e2
