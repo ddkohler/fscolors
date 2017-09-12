@@ -6,8 +6,11 @@ store cmap library for fscolors
 
 @author: Dan
 """
-from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.pyplot as plt
 import numpy as np
+import colorsys as cs
+from matplotlib.colors import LinearSegmentedColormap
+from scipy.interpolate import interp1d
 
 def cubehelix_r(gamma=1.0, s=0.5, r=-1.5, h=1.0):
     def get_color_function(p0, p1):
@@ -131,10 +134,19 @@ altcm = LinearSegmentedColormap.from_list('signed',signed_cm)
 altcm2 = LinearSegmentedColormap.from_list('signed2',blaise_cm)
 ampcm = LinearSegmentedColormap.from_list('skye',skye_amp)
 
-
+def get_color_func(segmentdata_i,x):
+    try:
+        c = segmentdata_i(x)
+    except TypeError:
+        clist = segmentdata_i
+        x = [lis[0] for lis in clist]
+        y = [lis[1] for lis in clist]
+        C = interp1d(x,y)
+        c = C(x)
+    r[r>1] = 1
+    r[r<0] = 0
 
 def plot_rgb(colorbar):
-    import matplotlib.pyplot as plt
     plt.figure()
     x=np.linspace(0,1.,num=256)
     r = colorbar._segmentdata['red'](x)
@@ -146,10 +158,54 @@ def plot_rgb(colorbar):
     b = colorbar._segmentdata['blue'](x)
     b[b>1] = 1
     b[b<0] = 0
-    k = .213*r + .715*g + .072*b
+    k = 0.213*r + 0.715*g + 0.072*b
     plt.plot(x,r,'r', linewidth=5, alpha=0.6)
     plt.plot(x,g,'g', linewidth=5, alpha=0.6)
     plt.plot(x,b,'b', linewidth=5, alpha=0.6)
     plt.plot(x,k,'k:', linewidth=5, alpha=0.6)
+    plt.grid()
+    
+def plot_hls(colorbar):
+    plt.figure()
+    x=np.linspace(0,1.,num=256)
+    r = colorbar._segmentdata['red'](x)
+    r[r>1] = 1
+    r[r<0] = 0
+    g = colorbar._segmentdata['green'](x)
+    g[g>1] = 1
+    g[g<0] = 0
+    b = colorbar._segmentdata['blue'](x)
+    b[b>1] = 1
+    b[b<0] = 0
+    hsl = np.zeros((3,x.size))
+    for i in range(x.size):
+        hsl[:,i] = cs.rgb_to_hls(r[i],g[i],b[i])
+    plt.plot(x,hsl[0],'k', linewidth=5, alpha=0.6, label='h')
+    plt.plot(x,hsl[1],'k--', linewidth=5, alpha=0.6, label='s')
+    plt.plot(x,hsl[2],'k:', linewidth=5, alpha=0.6, label='l')
+    plt.legend(loc=0)
     
     plt.grid()
+    
+def plot_yiq(colorbar):
+    plt.figure()
+    x=np.linspace(0,1.,num=256)
+    r = colorbar._segmentdata['red'](x)
+    r[r>1] = 1
+    r[r<0] = 0
+    g = colorbar._segmentdata['green'](x)
+    g[g>1] = 1
+    g[g<0] = 0
+    b = colorbar._segmentdata['blue'](x)
+    b[b>1] = 1
+    b[b<0] = 0
+    yiq = np.zeros((3,x.size))
+    for i in range(x.size):
+        yiq[:,i] = cs.rgb_to_yiq(r[i],g[i],b[i])
+    plt.plot(x,yiq[0],'k', linewidth=5, alpha=0.6, label='y')
+    plt.plot(x,yiq[1],'k--', linewidth=5, alpha=0.6, label='i')
+    plt.plot(x,yiq[2],'k:', linewidth=5, alpha=0.6, label='q')
+    plt.legend(loc=0)
+    
+    plt.grid()
+

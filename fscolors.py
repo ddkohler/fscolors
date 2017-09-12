@@ -40,10 +40,14 @@ units = {
         'l2':   (['l2'], 1.0, 'wn', r'$\mathrm{\lambda_2 (nm)}$', None),
         'l3':   (['l3'], 1.0, 'nm', r'$\mathrm{\lambda_3 (nm)}$', None),
         'lm':   (['lm'], 1.0, 'wn', r'$\mathrm{\lambda_m (nm)}$', None),
-        'w1':   (['l1'], 5.0, 'wn', r'$\mathrm{\bar\nu_1 (cm^{-1})}$', nm_to_wn),
-        'w2':   (['l2'], 5.0, 'nm', r'$\mathrm{\bar\nu_2 (cm^{-1})}$', nm_to_wn),
-        'w3':   (['l3'], 5.0, 'wn', r'$\mathrm{\bar\nu_3 (cm^{-1})}$', nm_to_wn),
-        'wm':   (['lm'], 1.0, 'nm', r'$\mathrm{\bar\nu_m (cm^{-1})}$', nm_to_wn),
+        'w1':   (['l1'], 5.0, 'wn', r'$\mathrm{\bar\nu_1 (cm^{-1})}$', 
+                 nm_to_wn),
+        'w2':   (['l2'], 5.0, 'nm', r'$\mathrm{\bar\nu_2 (cm^{-1})}$', 
+                 nm_to_wn),
+        'w3':   (['l3'], 5.0, 'wn', r'$\mathrm{\bar\nu_3 (cm^{-1})}$', 
+                 nm_to_wn),
+        'wm':   (['lm'], 1.0, 'nm', r'$\mathrm{\bar\nu_m (cm^{-1})}$', 
+                 nm_to_wn),
         'w21':  (['w2', 'w1'], 5.0, 'wn', 
                  r'$\mathrm{\bar\nu_2 - \bar\nu_1 (cm^{-1})}$', difference),
         'E1':   (['l1'], 0.001, 'eV', r'$\mathrm{E_1 (eV)}$', nm_to_eV),
@@ -51,13 +55,19 @@ units = {
         'E3':   (['l3'], 0.001, 'eV', r'$\mathrm{E_3 (eV)}$', nm_to_eV),
         'Em':   (['lm'], 0.001, 'eV', r'$\mathrm{E_m (eV)}$', nm_to_eV),
         'zref': (['zref'], 0.0005, 'mm', r'$\mathrm{z_{ref} (mm)}$', None),
-        'z1':   (['z1', 'd1'], 0.00005, 'mm', r'$\mathrm{z_1 (mm)}$', position),
-        'z2':   (['z2', 'd2'], 0.00005, 'mm', r'$\mathrm{z_2 (mm)}$', position),
+        'z1':   (['z1', 'd1'], 0.00005, 'mm', r'$\mathrm{z_1 (mm)}$', 
+                 position),
+        'z2':   (['z2', 'd2'], 0.00005, 'mm', r'$\mathrm{z_2 (mm)}$', 
+                 position),
         'dref': (['dref'], 25.0, 'fs', r'$\mathrm{d_{ref} (fs)}$', None),
         'd1':   (['d1'], 1.0, 'fs', r'$\mathrm{\tau_{22^{\prime}} (fs)}$', -1),
         'ds1':  (['d1'], 1.0, 'fs', r'$d_1$', None),
         'd2':   (['d2'], 1.0, 'fs', r'$\mathrm{\tau_{21} (fs)}$', None),
-        'd2real':(['d2', 'dref'], 2.0, 'fs', r'$\mathrm{\tau_{21} (fs)}$', difference),
+        'd2real':(['d2', 'dref'], 2.0, 'fs', r'$\mathrm{\tau_{21} (fs)}$', 
+                  difference),
+        'd1_from_old':(['d2', 'd1'], 2.0, 'fs', 
+                       # tau_2'1 --> tau_21 - tau_2'1 = tau_22'
+                       r'$\mathrm{\tau_{22^\prime} (fs)}$', add), 
         'ai0':  (['ai0'], 0.0, 'V', 'Signal 0', None),
         'ai1':  (['ai1'], 0.0, 'V', 'Signal 1', None),
         'ai2':  (['ai2'], 0.0, 'V', 'Signal 2', None),
@@ -223,12 +233,12 @@ class Dat:
             if xvar in self.units.keys():
                 self.xvar = xvar
             else:
-                print 'xvar {0} is not valid.  aborting import'.format(xvar)
+                print('xvar {0} is not valid.  aborting import'.format(xvar))
                 return
             if yvar in self.units.keys():
                 self.yvar = yvar
             else:
-                print 'yvar {0} is not valid.  aborting import'.format(yvar)
+                print('yvar {0} is not valid.  aborting import'.format(yvar))
                 return
             self.zvar = zvar
         elif scantype == '1d':
@@ -236,23 +246,23 @@ class Dat:
             if xvar in self.units.keys():
                 self.xvar = xvar
             else:
-                print 'xvar {0} is not valid.  aborting import'.format(xvar)
+                print('xvar {0} is not valid.  aborting import'.format(xvar))
                 return
             self.zvar = zvar
         elif scantype == 'norm': # file will not be explicitly plotted--need only self.data
             pass
         else:
-            print 'no treatment known for scan type', scantype
+            print('no treatment known for scan type', scantype)
         # if all the variable settings are okay, now import data 
         # either by file or by array
         if isfile:
             # check again to make sure the file still exists
             if os.path.isfile(filepath):
                 self.has_data=True
-                print 'found the file!'
+                print('found the file!')
             else:
                 self.has_data = False
-                print 'filepath',filepath,'does not yield a file'
+                print('filepath',filepath,'does not yield a file')
                 return        
             self.filepath, self.filename, self.file_suffix = filename_parse(filepath)
             # now import file as a local var
@@ -286,7 +296,7 @@ class Dat:
                     self.font_size = font_size
                 if font_family:
                     self.font_family = font_family
-                print 'file has imported'
+                print('file has imported')
                 # column assignments no longer make sense if axes are abstracted
                 #self.xcol = self.datCols[self.xvar]
                 #self.ycol = self.datCols[self.yvar]
@@ -341,7 +351,7 @@ class Dat:
                 else:
                     pass
             elif scantype == '1d':
-                print self.xvar, self.zvar
+                print(self.xvar, self.zvar)
                 self.xi = self._get_axes(self.xvar)
                 self.zi = self._get_axes(self.zvar)
             # check if a grid is being manually imported
@@ -379,7 +389,7 @@ class Dat:
             self.grid_factor=1
             self.zfit()
         else:
-            print 'no data was imported'
+            print('no data was imported')
 
     def _3PEPS_trace(self, T, w2w2p_pump = True):
         """
@@ -408,14 +418,14 @@ class Dat:
                 #find the horizontal part of the data we want
                 if (np.abs(self.data[d2_col][i] - ds) <= d2tol) and (self.data[d1_col][i] - ds) <= d1tol:
                     #2p comes first (non-rephasing)
-                    #print 'd1,d2 = %s, %s' % (self.data[d1_col][i],self.data[d2_col][i])
+                    #print('d1,d2 = %s, %s' % (self.data[d1_col][i],self.data[d2_col][i]))
                     tau_out.append([
                         self.data[d1_col][i]-ds,
                         self.data[self.zcol][i]])
                 
                 elif np.abs(self.data[d1_col][i] - ds) <= d1tol and self.data[d2_col][i] - ds <= d2tol:
                     #2 comes first  (rephasing)
-                    #print 'd1,d2 = %s, %s' % (self.data[d1_col][i],self.data[d2_col][i])
+                    #print('d1,d2 = %s, %s' % (self.data[d1_col][i],self.data[d2_col][i]))
                     tau_out.append([
                         -(self.data[d2_col][i]-ds),
                         self.data[self.zcol][i]])
@@ -442,7 +452,7 @@ class Dat:
 
     def center(self, axis=None, center=None):
         if center == 'max':
-            print 'listing center as the point of maximum value'
+            print('listing center as the point of maximum value')
             if axis == 0 or axis in ['x', self.xvar]:
                 index = self.zi.argmax(axis=0)
                 set_var = self.xi
@@ -454,7 +464,7 @@ class Dat:
                 max_var = self.xi
                 out = np.zeros(self.yi.shape)
             else:
-                print 'Input error:  axis not identified'
+                print('Input error:  axis not identified')
                 return
             for i in range(len(set_var)):
                 out[i] = max_var[index[i]]
@@ -471,7 +481,7 @@ class Dat:
         if self.s1:
             ax_cb = plt.subplot(self.gs[1])
         else:
-            print 'must create plot before adding colorbar'
+            print('must create plot before adding colorbar')
             return
         if self.alt_zi == 'int':
             ticks = np.linspace(-1,1,21)
@@ -527,7 +537,7 @@ class Dat:
             self.p1.colorbar(self.cax, ticks=ticks, cax=ax_cb).ax.set_yticklabels(ticklabels)
             #self.p1.colorbar(self.cax, ticks=ticks, cax=ax_cb)
         else: #could not determine colorbar type
-            print 'color scale used not recognized:  cannot produce colorbar'
+            print('color scale used not recognized:  cannot produce colorbar')
 
     def Dat(self):
         """
@@ -568,15 +578,15 @@ class Dat:
                             closest=min([closest,difference])
             #check if we have any values that fit
             if len(out) == 0:
-                print 'no x and y values were closer than {0}.  Try increasing grid_factor'.format(closest)
+                print('no x and y values were closer than {0}.  Try increasing grid_factor'.format(closest))
             else:
                 out.sort()
                 out = np.array(zip(*out))
                 return np.array(out)
         else:
-            print 'cannot give diagonal if x and y units are not the same'
-            print 'x axis:', self.xvar
-            print 'y axis:', self.yvar
+            print('cannot give diagonal if x and y units are not the same')
+            print('x axis:', self.xvar)
+            print('y axis:', self.yvar)
             return
         
     def difference2d(self):
@@ -584,7 +594,7 @@ class Dat:
             Take the registered plot and import one to take the difference.
             Difference will be plotted as ref - imported (so biggest differences are red)
         """
-        print 'Specify the requested file to compare with ref'
+        print('Specify the requested file to compare with ref')
         imported = Dat(xvar=self.xvar, yvar=self.yvar, user_created=False, grid_factor=self.grid_factor)
         #create zi grid using ref grid values
         imported._gengrid(xlis=self.xi, ylis=self.yi)
@@ -639,7 +649,7 @@ class Dat:
     def export_dat(self, fname=None, cols='v2'):
         """
             generate a dat file using the current zi grid
-            cols determines teh output format
+            cols determines the output format
             currently ignores constants of the scan
         """
         # will only work if mapping back to dat is easy
@@ -652,7 +662,7 @@ class Dat:
             out = np.zeros((self.zi.size, 27))
             cols = Dat.cols_v2
         # index column is easy:
-        print out.shape, self.zi.size
+        print(out.shape, self.zi.size)
         out[:,0] = np.arange(out.shape[0])
         out_x = np.tile(out_x, self.zi.shape[0])
         out_y = np.tile(out_y[:,None], (1, self.zi.shape[1])).ravel()
@@ -667,13 +677,13 @@ class Dat:
         if len(units[self.xvar][0]) == 1:
             xcol = cols[units[self.xvar][0][0]]
         else:
-            print 'cannot source correct column to place xvar'
-        print self.zi.shape[0], out_x.shape, out_y.shape
+            print('cannot source correct column to place xvar')
+        print(self.zi.shape[0], out_x.shape, out_y.shape)
         out[:,xcol] = out_x
         if len(units[self.yvar][0]) == 1:
             ycol = cols[units[self.yvar][0][0]]
         else:
-            print 'cannot source correct column to place yvar'
+            print('cannot source correct column to place yvar')
             ycol
         out[:,ycol] = out_y
         
@@ -691,7 +701,7 @@ class Dat:
         fname = find_name(fname, file_suffix)
         fname += '.' + file_suffix
         np.savetxt(fname, out, fmt='%10.5F', delimiter='\t')
-        print 'exported dat saved as {0}'.format(fname)
+        print('exported dat saved as {0}'.format(fname))
 
     def exp_value(self, axis=None, moment=1, norm=True, noise_filter=None):
         """
@@ -718,10 +728,10 @@ class Dat:
             int_var = self.xi
             out = np.zeros(self.yi.shape)
         else:
-            print 'Input error:  axis not identified'
+            print('Input error:  axis not identified')
             return
         if not isinstance(moment, int):
-            print 'moment must be an integer.  recieved {0}'.format(moment)
+            print('moment must be an integer.  recieved {0}'.format(moment))
             return
         for i in range(out.shape[0]):
             # ignoring znull for this calculation, and offseting my slice by min
@@ -764,19 +774,19 @@ class Dat:
         A0 = m0 / (s0 * np.sqrt(2*np.pi))
         offset = np.zeros(m0.shape)
         
-        print mu_0
+        print(mu_0)
 
         p0 = np.array([A0, mu_0, s0, offset])
         out = p0.copy()
         from scipy.optimize import leastsq
         for i in range(out.shape[1]):
-            #print leastsq(gauss_residuals, p0[:,i], args=(zi[:,i], var))
+            #print(leastsq(gauss_residuals, p0[:,i], args=(zi[:,i], var)))
             try:
                 out[:,i] = leastsq(gauss_residuals, p0[:,i], args=(zi[:,i]-self.znull, var))[0]
             except:
-                print 'least squares failed on {0}:  initial guesses will be used instead'.format(i)
+                print('least squares failed on {0}:  initial guesses will be used instead'.format(i))
                 out[:,i] = p0[:,i]
-            #print out[:,i] - p0[:,i]
+            #print(out[:,i] - p0[:,i])
         out[2] = np.abs(out[2])
         return out
         
@@ -795,7 +805,7 @@ class Dat:
         elif isinstance(method, object):
             return method(args, invert=True)
         else:
-            print 'could not calculate axis for key {0}'.format(key)
+            print('could not calculate axis for key {0}'.format(key))
 
     def _get_axes(self, key):
         """
@@ -826,7 +836,7 @@ class Dat:
         elif isinstance(method, object):
             return method(*al)
         else:
-            print 'could not calculate axis for key {0}'.format(key)
+            print('could not calculate axis for key {0}'.format(key))
 
     def _gengrid(self, xlis=None, ylis=None, fill_value=None):
         """
@@ -893,7 +903,7 @@ class Dat:
         # grid each of our signal channels
         for key in self.zvars:
             zcol = self.datCols[key]            
-            #print key, zcol
+            #print(key, zcol)
             #make fill value znull right now (instead of average value)
             fill_value = self.znull #self.data[zcol].sum()  / len(self.data[zcol])
             grid_i = griddata((x_col,y_col), self.data[zcol], 
@@ -928,7 +938,7 @@ class Dat:
              np.savetxt(filename, dataDump)
             
          else:
-             print 'specified axis is not recognized'
+             print('specified axis is not recognized')
 
     def level(self, npts, axis=None, aggregate=False):
         """
@@ -942,7 +952,7 @@ class Dat:
         # verify npts not zero
         npts = int(npts)
         if npts == 0:
-            print 'cannot level if no sampling range is specified'
+            print('cannot level if no sampling range is specified')
             return
         delays = ['d1','d2','t2p1','t21','dref']
         begin = None
@@ -985,7 +995,7 @@ class Dat:
                     self.zi = self.zi - offset[:,None]
                     baseline = baseline - offset[:,None]
             else:
-                print 'Level failed:  no delay axis was found'
+                print('Level failed:  no delay axis was found')
                 return
         elif axis == 0 or axis in ['x', self.xvar]:
                 var = self.xvar
@@ -1021,12 +1031,12 @@ class Dat:
                     offset = baseline.sum(axis=axis) / np.abs(npts)
                     self.zi = self.zi - offset[None,:]
                     baseline = baseline - offset[None,:]
-        print r'Baselined according to {0}:  {1} - {2} {3} range'.format(
-            var, begin, end, self.units[var][2])
+        print(r'Baselined according to {0}:  {1} - {2} {3} range'.format(
+            var, begin, end, self.units[var][2]))
         # since we know what portion of the data is baseline, 
         # we can provide an estimate of data noise
         self.variance = (baseline**2).sum() / baseline.size
-        print 'Measured noise variance of {0}'.format(self.variance)
+        print('Measured noise variance of {0}'.format(self.variance))
         self.znull = 0.
         self.zmin = self.zi.min()
         self.zmax = self.zi.max()
@@ -1048,7 +1058,7 @@ class Dat:
             channel can be used to normalize zi by a zvars channel
         """
         if ntype is None:
-            print 'no ntype selected; normalizing to max amplitude and znull'
+            print('no ntype selected; normalizing to max amplitude and znull')
             zi_amp = max(np.abs([self.zi.max() - self.znull, self.zi.min() - self.znull]))
             self.zi = (self.zi - self.znull) / zi_amp
             self.zmax = self.zi.max()
@@ -1066,14 +1076,14 @@ class Dat:
             if x_unit in freq_units or y_unit in freq_units:
                 # first find x normalization values, then y normalization values
                 if x_unit in freq_units:
-                    print 'Need normalization file for ',self.xvar,' from ',min(self.xi),' to ',max(self.xi)
+                    print('Need normalization file for ',self.xvar,' from ',min(self.xi),' to ',max(self.xi))
                     # import the desired colors file
                     if x_file:
                         x_file_path, x_file_name, x_file_suffix = filename_parse(x_file)
                         if x_file_suffix == 'dat':
                             xNorm = Dat(filepath=x_file, scantype='norm', cols=self.cols)
                             if not xnSigVar:
-                                xnSigVar = raw_input('which column has normalization signal (ai1, ai2, ai3)?')
+                                xnSigVar = input('which column has normalization signal (ai1, ai2, ai3)?')
                             xnCol = xNorm.datCols[self.xvar] 
                             xnSigCol = xNorm.datCols[xnSigVar]
                         elif x_file_suffix == 'fit':
@@ -1095,27 +1105,27 @@ class Dat:
                             # w2 gets squared for normalization in standard treatment
                             fx = interp1d(xnData[0],xnData[1], kind='cubic', bounds_error=True)
                         except:
-                            print 'failed to generate norm function for {0}'.format(self.xvar)
+                            print('failed to generate norm function for {0}'.format(self.xvar))
                             fx = False #interp1d([min(self.xi),max(self.xi)],[1,1])
                     # rather than look for a file, don't normalize by x if 
                     # x_file is not given
                     else:
-                        print 'no file found for xnorm using filepath {0}'.format(x_file)
+                        print('no file found for xnorm using filepath {0}'.format(x_file))
                         fx = False
                 else:
                     fx = None
                     #xni = np.ones(len(self.xi))
 
                 if self.yvar in freqs:                
-                    print 'Need normalization file for ',self.yvar,' from ',min(self.yi),' to ',max(self.yi)
+                    print('Need normalization file for ',self.yvar,' from ',min(self.yi),' to ',max(self.yi))
                     #import the desired colors file using a special case of the module!
                     if y_file:
                         y_file_path, y_file_name, y_file_suffix = filename_parse(y_file)
                         if y_file_suffix == 'dat':
-                            print 'in here!'
+                            print('in here!')
                             yNorm = Dat(filepath=y_file, scantype='norm', cols=self.cols)
                             if not ynSigVar:
-                                ynSigVar = raw_input('which column has normalization signal (ai1, ai2, ai3)?')
+                                ynSigVar = input('which column has normalization signal (ai1, ai2, ai3)?')
                             ynCol = yNorm.datCols[self.yvar] 
                             ynSigCol = yNorm.datCols[ynSigVar]
                         elif y_file_suffix == 'fit':
@@ -1133,11 +1143,11 @@ class Dat:
                                 plt.plot(ynData[0],ynData[1],label='yvar')
                             fy = interp1d(ynData[0],ynData[1], kind='cubic', bounds_error=True)
                         except:
-                            print 'failed to generate norm function for {0}'.format(self.yvar)
+                            print('failed to generate norm function for {0}'.format(self.yvar))
                             fy = False#interp1d([min(self.yi),max(self.yi)],[1,1])
                             return
                     else:
-                        print 'no file found for ynorm using filepath {0}'.format(y_file)
+                        print('no file found for ynorm using filepath {0}'.format(y_file))
                         fx = False
                     #yni = griddata(ynData[0],ynData[1], self.yi, method='cubic')
                     #fyi = fy(self.yi)
@@ -1176,11 +1186,11 @@ class Dat:
                             elif np.abs(self.data[self.xcol][i]-xnData[0].min()) < self.units[self.xvar][1]:
                                 zi = (zi - znull) / (fx(xnData[0].min())**xpower) + znull
                             else:
-                                print 'There is a problem with element x={0}, row {1}'.format(self.data[self.xcol][i],i)  
-                                print 'norm data has range of: {0}-{1}'.format(xnData[0].min(), xnData[0].max())
+                                print('There is a problem with element x={0}, row {1}'.format(self.data[self.xcol][i],i))
+                                print('norm data has range of: {0}-{1}'.format(xnData[0].min(), xnData[0].max()))
                                 return
                         except ZeroDivisionError:
-                            print 'divided by zero at element x={0}, row {1}'.format(self.data[self.xcol][i],i)  
+                            print('divided by zero at element x={0}, row {1}'.format(self.data[self.xcol][i],i))
                             zi = znull
                     if fy:
                         try:
@@ -1192,11 +1202,11 @@ class Dat:
                             elif np.abs(self.data[self.ycol][i]-ynData[0].min()) < self.units[self.yvar][1]:
                                 zi = (zi - znull) / (fy(ynData[0].min())**ypower) + znull
                             else:
-                                print 'There is a problem with element y={0}, row {1}'.format(self.data[self.ycol][i],i)  
-                                print 'norm data has range of: {0}-{1}'.format(ynData[0].min(), ynData[0].max())
+                                print('There is a problem with element y={0}, row {1}'.format(self.data[self.ycol][i],i))
+                                print('norm data has range of: {0}-{1}'.format(ynData[0].min(), ynData[0].max()))
                                 return
                         except ZeroDivisionError:
-                                print 'divided by zero at element y={0}, row {1}'.format(self.data[self.ycol][i],i)  
+                                print('divided by zero at element y={0}, row {1}'.format(self.data[self.ycol][i],i))
                                 zi = znull
                     self.data[self.zcol][i] = zi
                 # offset so that znull = 0
@@ -1210,7 +1220,7 @@ class Dat:
                 self.zmin = self.zi.min()
 
             else:
-                print 'wavelength normalization not needed:  x and y vars are wavelength invariant'
+                print('wavelength normalization not needed:  x and y vars are wavelength invariant')
         # now for trace-localized normalization
         # ntype specifies the traces to normalize
         # used to be called equalize
@@ -1225,7 +1235,7 @@ class Dat:
             self.zmax = self.zi.max()
             self.zmin = self.zi.min()
             self.znull = 0.
-            print 'normalization complete!'
+            print('normalization complete!')
         elif ntype in ['vertical', 'v', 'y', self.yvar]: 
             nmin = self.znull
             maxes = self.zi.max(axis=0)
@@ -1236,9 +1246,9 @@ class Dat:
             self.zmax = self.zi.max()
             self.zmin = self.zi.min()
             self.znull = 0.
-            print 'normalization complete!'
+            print('normalization complete!')
         else:
-                print 'did not normalize because only programmed to handle linear, log, or power normalization'
+                print('did not normalize because only programmed to handle linear, log, or power normalization')
     
     def plot2d(self, alt_zi='raw', 
                scantype=None, contour=False, aspect=None, pixelated=False, 
@@ -1322,7 +1332,7 @@ class Dat:
                 # are on the same side of znull, then the data only has one sign!
                 if znull >= max(zmin, zmax):
                     # data is negative sign
-                    print 'data has only negative sign'
+                    print('data has only negative sign')
                     if dynamic_range:
                         ubound = zmax
                     else:
@@ -1330,7 +1340,7 @@ class Dat:
                     lbound = zmin
                 elif znull <= min(zmin, zmax):
                     # data is positive sign
-                    print 'data has only positive sign'
+                    print('data has only positive sign')
                     if dynamic_range:
                         lbound = zmin
                     else:
@@ -1338,7 +1348,7 @@ class Dat:
                     ubound = zmax
                 else:
                     # data has positive and negative sign, so center the colorbar
-                    print 'data has positive and negative sign'
+                    print('data has positive and negative sign')
                     if dynamic_range:
                         # check for whether positive or negative signals extend less
                         # using smaller range on both sides of znull ensures full 
@@ -1355,12 +1365,12 @@ class Dat:
                         else:
                             ubound = np.abs(zmin)
                     lbound = 2*znull - ubound
-            print 'lower and upper bounds:', lbound, ubound
+            print('lower and upper bounds:', lbound, ubound)
             levels = np.linspace(lbound, ubound, num=200)
         elif alt_zi in ['amp', 'log']:
-            zi_norm = np.ma.masked_less_equal(
-                self.zi - self.znull, 0.)
+            zi_norm = self.zi.copy() - self.znull
             if alt_zi == 'amp':
+                zi_norm[zi_norm <= 0] = 0.
                 # for sqrt scale (amplitude)
                 zi_norm = np.sqrt(zi_norm)
                 if floor is not None:
@@ -1378,7 +1388,7 @@ class Dat:
                 if floor is not None:
                     self.floor = floor
                 else:
-                    self.floor = zi_norm.min()
+                    self.floor = zi_norm[zi_norm > 0].min()
                 zi_norm[zi_norm <= 10**self.floor] = 10**self.floor
                 if ceiling is not None:
                     self.ceiling = ceiling
@@ -1390,7 +1400,7 @@ class Dat:
                 #zi_norm = zi_norm.filled(self.ceiling)
             levels = np.linspace(self.floor, self.ceiling, num=200)
         else:
-            print 'alt_zi type {0} not recognized; plotting on raw scale'.format(alt_zi)
+            print('alt_zi type {0} not recognized; plotting on raw scale'.format(alt_zi))
             zi_norm = self.zi
             levels = 200 
         self.alt_zi=alt_zi
@@ -1423,11 +1433,20 @@ class Dat:
         if contour:
             # normalize to zmin and zmax if they are smaller than the bounds
             # of the data
+            # unless dynamic_range is set to off: 
+            #if not dynamic_range: # then colorbar is squared to zero and so 
+            # should our ticks be
             plt.contour(self.xi, self.yi, self.zi_norm, 
-                        levels=np.linspace(self.zi_norm.min(), 
-                                           self.zi_norm.max(), 
+                        levels=np.linspace(levels.min(),
+                                           levels.max(),
                                            num=self.contour_n+2)[1:-1], 
                         **self.contour_kwargs)
+            #else:
+            #    plt.contour(self.xi, self.yi, self.zi_norm, 
+            #                levels=np.linspace(self.zi_norm.min(), 
+            #                                   self.zi_norm.max(), 
+            #                                   num=self.contour_n+2)[1:-1], 
+            #                **self.contour_kwargs)
         #matplotlib.axes.rcParams.viewitems
         plt.xticks(rotation=45)
         plt.grid(b=True)
@@ -1451,7 +1470,7 @@ class Dat:
         p1.subplots_adjust(bottom=0.18)
         #s1.set_adjustable('box-forced')
         s1.autoscale(False)
-        print 'plotting finished!'
+        print('plotting finished!')
 
     def savefig(self, fname=None, **kwargs):
         """
@@ -1461,7 +1480,7 @@ class Dat:
         if self.p1:        
             pass
         else:
-            print 'no plot is associated with the data. cannot save'
+            print('no plot is associated with the data. cannot save')
             return
         if fname is None:
             fname = self.filename
@@ -1478,7 +1497,7 @@ class Dat:
         fname = find_name(fname, file_suffix)
         fname = fname + '.' + file_suffix
         self.p1.savefig(fname, **kwargs)
-        print 'image saved as {0}'.format(fname)
+        print('image saved as {0}'.format(fname))
 
     def side_plots(self, subplot, 
                     # do we project (bin) either axis?
@@ -1545,7 +1564,7 @@ class Dat:
                 axCorry.set_xlim([0,1.1])
             axCorry.set_ylim([self.yi.min(), self.yi.max()])
         if isinstance(x_list, np.ndarray): 
-            print x_list.shape
+            print(x_list.shape)
             axCorrx.plot(x_list[0],x_list[1], self.side_plot_else_linetype,
                          **self.side_plot_else_kwargs)
             axCorrx.set_ylim([0.,1.1])
@@ -1553,7 +1572,7 @@ class Dat:
             try:
                 x_list = x_obj.data[0][2].copy()
             except IndexError:
-                print 'Import failed--data type was not recognized'
+                print('Import failed--data type was not recognized')
             # spectrometer has units of nm, so make sure these agree
             if self.xvar in ['w1','w2','wm']:
                 x_list[0] = 10**7 / x_list[0]
@@ -1571,7 +1590,7 @@ class Dat:
             try:
                 y_list = y_obj.data[0][2].copy()
             except IndexError:
-                print 'Import failed--data type was not recognized'
+                print('Import failed--data type was not recognized')
             if self.yvar in ['w1','w2','wm']:
                 y_list[0] = 10**7 / y_list[0]
             #normalize the data set
@@ -1582,6 +1601,26 @@ class Dat:
             #axCorry.set_xlim([0.,1.1])
             axCorry.set_ylim([self.yi.min(), self.yi.max()])
     
+    def sg_smooth(self, n, order,
+                  xaxis=True, yaxis=True):
+        """
+        sovitzky golay smoothing
+        """
+        if xaxis and yaxis:
+            self.zi = sgolay2d(self.zi, n, order)
+            self.zfit()
+        elif xaxis:
+            for i in range(self.zi.shape[0]):
+                self.zi[i] = savitzky_golay(self.zi[i], n, order)
+        elif yaxis:
+            for i in range(self.zi.shape[1]):
+                self.zi[:,i] = savitzky_golay(self.zi[:,i], n, order)
+        else:
+            print('no smoothing performed:  no axis specified')
+            return
+        self.zfit()
+            
+
     def smooth(self, 
                x=0,y=0, 
                window='kaiser'): #smoothes via adjacent averaging            
@@ -1660,16 +1699,16 @@ class Dat:
         if variance is None:
             try: variance = self.variance
             except NameError:
-                print 'variance is not known: cannot filter'
+                print('variance is not known: cannot filter')
                 return
         index = None
         i = np.arange(len(self.s))
         cutoff = variance * (self.U.shape[0]-i) * (self.V.shape[0]-i)
         frob_norm = 0
         for ii in i:
-            print ii, self.s[ii]**2, cutoff[ii]
+            print(ii, self.s[ii]**2, cutoff[ii])
             frob_norm = np.sqrt((self.s[:ii+1]**2).sum() / (self.s**2).sum())
-            print 'Frob norm {0} %'.format(round(frob_norm,4))
+            print('Frob norm {0} %'.format(round(frob_norm,4)))
             if cutoff[ii] > self.s[ii]**2:
                 # don't include this point
                 index = ii
@@ -1681,9 +1720,9 @@ class Dat:
         # if cutoff never caused a break, data is full rank
         if index is None:
             index = i[-1]
-            print 'svd filter failed:  noise is too large'
+            print('svd filter failed:  noise is too large')
         self.rank = index
-        print 'Data is of rank {0}'.format(self.rank)
+        print('Data is of rank {0}'.format(self.rank))
         # now execute the partial sum
         temp_sum = np.zeros(self.zi.shape)
         for i in range(self.rank):
@@ -1697,8 +1736,8 @@ class Dat:
         # we could calculate average percent error accurately by excluding 
         # points that are 0 to within noise levels
         # normalized by size of zi
-        print 'RMSD {0:.2} '.format(RMSD)
-        print 'NRMSD {0:.2%}'.format(NRMSD)
+        print('RMSD {0:.2} '.format(RMSD))
+        print('NRMSD {0:.2%}'.format(NRMSD))
         self.zi = temp_sum
         self.zmin, self.zmax = self.zi.min(), self.zi.max()
         if zfit:  self.zfit()
@@ -1724,7 +1763,7 @@ class Dat:
         self.xvar = tempyvar
         self.yvar = tempxvar
         
-        print 'x axis is now {0}, and y is {1}'.format(self.xvar, self.yvar)
+        print('x axis is now {0}, and y is {1}'.format(self.xvar, self.yvar))
 
     def trace(self, val=None, kind=None, save=False):
         """
@@ -1810,8 +1849,8 @@ class NIRscan:
     def __init__(self):
         self.data = list()
         self.unit = 'nm'
-        self.xmin = None
-        self.xmax = None
+        self.xmin = 0
+        self.xmax = 0
 
     def add(self, filepath=None,dataName=None):
         #import data file--right now designed to be a file from Rob's spectrometer
@@ -1821,27 +1860,27 @@ class NIRscan:
         if filepath:
             pass
         else:
-            filepath = raw_input('Please enter the filepath:')
+            filepath = input('Please enter the filepath:')
         if type(filepath) == str:
             pass
         else:
-            print 'Error:  filepath needs to be a string'
+            print('Error:  filepath needs to be a string')
             return
         
         if os.path.isfile(filepath):
-            print 'found the file!'
+            print('found the file!')
         else:
-            print 'Error: filepath does not yield a file'
+            print('Error: filepath does not yield a file')
             return
 
         #is the file suffix one that we expect?  warn if it is not!
         filesuffix = os.path.basename(filepath).split('.')[-1]
         if filesuffix != 'txt':
-            should_continue = raw_input('Filetype is not recognized and may not be supported.  Continue (y/n)?')
+            should_continue = input('Filetype is not recognized and may not be supported.  Continue (y/n)?')
             if should_continue == 'y':
                 pass
             else:
-                print 'Aborting'
+                print('Aborting')
                 return
 
         
@@ -1849,7 +1888,7 @@ class NIRscan:
         if dataName:
             pass
         else:
-            dataName = raw_input('Please name this data set:  ')
+            dataName = input('Please name this data set:  ')
         #now import file as a local var--18 lines are just txt and thus discarded
         rawDat = np.genfromtxt(filepath, skip_header=18)
         dataSet = [dataName, 'nm', np.zeros((2,len(rawDat)))]
@@ -1862,7 +1901,7 @@ class NIRscan:
             self.xmax = max(self.data[-1][2][0])
         if min(self.data[-1][2][0]) < self.xmin:
             self.xmin = min(self.data[-1][2][0])
-        print 'file has imported!'
+        print('file has imported!')
     
     def A(self, scan_no=0, units='wn'):
         from scipy.interpolate import interp1d
@@ -1928,7 +1967,7 @@ class NIRscan:
         return dat1[:][:,n:-n]
     def export(self):
         #write a file with smoothed 2nd derivative data included
-        print 'in progress!'
+        print('in progress!')
 
 class Fit:
     # old_cols used before COLORS support for extra mixers (~November 2013 and
@@ -1970,14 +2009,14 @@ class Fit:
         if filepath:
             pass
         else:
-            filepath = raw_input('Please give the absolute file location:')
+            filepath = input('Please give the absolute file location:')
         #filepath must yield a file
         if os.path.isfile(filepath):
             self.has_data=True
-            print 'found the file!'
+            print('found the file!')
         else:
             self.has_data = False
-            print 'filepath',filepath,'does not yield a file'
+            print('filepath',filepath,'does not yield a file')
             return
         self.filepath, self.filename, self.file_suffix = filename_parse(filepath)
         rawDat = np.genfromtxt(filepath,dtype=np.float) 
@@ -1985,7 +2024,7 @@ class Fit:
         self.data = rawDat.T
         if old_cols:
             self.cols = self.old_cols
-        print 'file has imported'
+        print('file has imported')
 
     def gengrid(self, xlis=None, ylis=None, fill_value=None):
         """
@@ -2076,11 +2115,11 @@ def makefit(**kwargs):
             if name in Fit.cols.keys():
                 out[:, Fit.cols[name][0]] = value
             else:
-                print 'name {0} is not an appropriate column name'.format(name)
+                print('name {0} is not an appropriate column name'.format(name))
                 return
         else:
-            print 'Error: not all columns are the same length:  len({0})={1}, len({2}) = {3}'.format(
-                kwargs.keys()[0], n, name, len(value))
+            print('Error: not all columns are the same length:  len({0})={1}, len({2}) = {3}'.format(
+                kwargs.keys()[0], n, name, len(value)))
             return
     return out
 
@@ -2105,7 +2144,7 @@ def find_name(fname, suffix):
                i = i + 1
                # prevent infinite loop if the code isn't perfect
                if i > 100:
-                   print 'didn\'t find a good name; index used up to 100!'
+                   print('didn\'t find a good name; index used up to 100!')
                    fname = False
                    good_name=True
         except IOError:
@@ -2131,7 +2170,7 @@ def make_tune(obj, set_var, fname=None, amp='int', center='exp_val', fit=True,
         to have a specific color you want to set zero delay to.
     """
     if set_var not in ['x', 'y', obj.xvar, obj.yvar]:
-        print 'Error:  set_var type not supported: {0}'.format(set_var)
+        print('Error:  set_var type not supported: {0}'.format(set_var))
     # make sure obj type is appropriate and extract properties
     #zimin = obj.zi.min()
     tempzi = obj.zi - obj.znull
@@ -2219,12 +2258,12 @@ def make_tune(obj, set_var, fname=None, amp='int', center='exp_val', fit=True,
         fname = filepath + '\\' + fname
     fstr = find_name(fname, 'fit')
     if not fstr:
-        print 'Could not write file without overwriting an existing file'
-        print 'Aborting file write'
+        print('Could not write file without overwriting an existing file')
+        print('Aborting file write')
         return
-    with file(fstr+'.fit', 'a') as exp_file:
+    with open(fstr+'.fit', 'a') as exp_file:
         np.savetxt(exp_file, out, delimiter='\t', fmt='%.3f')
-    print 'saved as {0}'.format(fstr+'.fit')
+    print('saved as {0}'.format(fstr+'.fit'))
 
 def filename_parse(fstr):
     """
@@ -2265,3 +2304,163 @@ class SVD:
     """
     def __init__():
         pass
+
+from scipy.signal import fftconvolve
+def savitzky_golay(y, n_neighbors, order, deriv=0, rate=1):
+    r"""
+    From http://wiki.scipy.org/Cookbook/SavitzkyGolay
+
+    Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
+    The Savitzky-Golay filter removes high frequency noise from data.
+    It has the advantage of preserving the original shape and
+    features of the signal better than other types of filtering
+    approaches, such as moving averages techniques.
+    
+    Parameters
+    ----------
+    y : array_like, shape (N,)
+        the values of the time history of the signal.
+    window_size : int
+        the length of the window. Must be an odd integer number.
+    order : int
+        the order of the polynomial used in the filtering.
+        Must be less then `window_size` - 1.
+    deriv: int
+        the order of the derivative to compute (default = 0 means only smoothing)
+
+    Returns
+    -------
+    ys : ndarray, shape (N)
+        the smoothed signal (or it's n-th derivative).
+    Notes
+    -----
+    The Savitzky-Golay is a type of low-pass filter, particularly
+    suited for smoothing noisy data. The main idea behind this
+    approach is to make for each point a least-square fit with a
+    polynomial of high order over a odd-sized window centered at
+    the point.
+
+    Examples
+    --------
+    t = np.linspace(-4, 4, 500)
+    y = np.exp( -t**2 ) + np.random.normal(0, 0.05, t.shape)
+    ysg = savitzky_golay(y, window_size=31, order=4)
+    import matplotlib.pyplot as plt
+    plt.plot(t, y, label='Noisy signal')
+    plt.plot(t, np.exp(-t**2), 'k', lw=1.5, label='Original signal')
+    plt.plot(t, ysg, 'r', label='Filtered signal')
+    plt.legend()
+    plt.show()
+
+    References
+    ----------
+    .. [1] A. Savitzky, M. J. E. Golay, Smoothing and Differentiation of
+       Data by Simplified Least Squares Procedures. Analytical
+       Chemistry, 1964, 36 (8), pp 1627-1639.
+    .. [2] Numerical Recipes 3rd Edition: The Art of Scientific Computing
+       W.H. Press, S.A. Teukolsky, W.T. Vetterling, B.P. Flannery
+       Cambridge University Press ISBN-13: 9780521880688
+    """
+    import numpy as np
+    from math import factorial
+    try:
+        window_size = np.abs(np.int(n_neighbors*2)) + 1
+        order = np.abs(np.int(order))
+    except ValueError:
+        raise ValueError("window_size and order have to be of type int")
+    if window_size < order + 2:
+        raise TypeError("window_size is too small for the polynomials order")
+    order_range = range(order+1)
+    half_window = n_neighbors
+    # precompute coefficients
+    b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
+    m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
+    # pad the signal at the extremes with
+    # values taken from the signal itself
+    firstvals = y[0] - np.abs(y[1:half_window+1][::-1] - y[0]  )
+    lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
+    y = np.concatenate((firstvals, y, lastvals))
+    return np.convolve( m[::-1], y, mode='valid')
+
+def sgolay2d(z, n_neighbors, order, derivative=None):
+    """
+    Sovitzky Golay smoothing
+    this code based on a snippet from:
+        http://wiki.scipy.org/Cookbook/SavitzkyGolay
+    z:  input 2d array
+    n_neighbors:  number of points around current data to incorporate
+    """
+    # number of terms in the polynomial expression
+    n_terms = ( order + 1 ) * ( order + 2)  / 2.0
+    window_size = 2*n_neighbors + 1
+
+    if window_size**2 < n_terms:
+        raise ValueError('order is too high for the window size')
+
+    half_size = n_neighbors #window_size // 2
+
+    # exponents of the polynomial. 
+    # p(x,y) = a0 + a1*x + a2*y + a3*x^2 + a4*y^2 + a5*x*y + ... 
+    # this line gives a list of two item tuple. Each tuple contains 
+    # the exponents of the k-th term. First element of tuple is for x
+    # second element for y.
+    # Ex. exps = [(0,0), (1,0), (0,1), (2,0), (1,1), (0,2), ...]
+    exps = [ (k-n, n) for k in range(order+1) for n in range(k+1) ]
+
+    # coordinates of points
+    ind = np.arange(-half_size, half_size+1, dtype=np.float64)
+    dx = np.repeat( ind, window_size )
+    dy = np.tile( ind, [window_size, 1]).reshape(window_size**2, )
+
+    # build matrix of system of equation
+    A = np.empty( (window_size**2, len(exps)) )
+    for i, exp in enumerate( exps ):
+        A[:,i] = (dx**exp[0]) * (dy**exp[1])
+
+    # pad input array with appropriate values at the four borders
+    new_shape = z.shape[0] + 2*half_size, z.shape[1] + 2*half_size
+    Z = np.zeros( (new_shape) )
+    # top band
+    band = z[0, :]
+    Z[:half_size, half_size:-half_size] =  band -  np.abs( np.flipud( z[1:half_size+1, :] ) - band )
+    # bottom band
+    band = z[-1, :]
+    Z[-half_size:, half_size:-half_size] = band  + np.abs( np.flipud( z[-half_size-1:-1, :] )  -band )
+    # left band
+    band = np.tile( z[:,0].reshape(-1,1), [1,half_size])
+    Z[half_size:-half_size, :half_size] = band - np.abs( np.fliplr( z[:, 1:half_size+1] ) - band )
+    # right band
+    band = np.tile( z[:,-1].reshape(-1,1), [1,half_size] )
+    Z[half_size:-half_size, -half_size:] =  band + np.abs( np.fliplr( z[:, -half_size-1:-1] ) - band )
+    # central band
+    Z[half_size:-half_size, half_size:-half_size] = z
+
+    # top left corner
+    band = z[0,0]
+    Z[:half_size,:half_size] = band - np.abs( np.flipud(np.fliplr(z[1:half_size+1,1:half_size+1]) ) - band )
+    # bottom right corner
+    band = z[-1,-1]
+    Z[-half_size:,-half_size:] = band + np.abs( np.flipud(np.fliplr(z[-half_size-1:-1,-half_size-1:-1]) ) - band )
+
+    # top right corner
+    band = Z[half_size,-half_size:]
+    Z[:half_size,-half_size:] = band - np.abs( np.flipud(Z[half_size+1:2*half_size+1,-half_size:]) - band )
+    # bottom left corner
+    band = Z[-half_size:,half_size].reshape(-1,1)
+    Z[-half_size:,:half_size] = band - np.abs( np.fliplr(Z[-half_size:, half_size+1:2*half_size+1]) - band )
+
+    # solve system and convolve
+    if derivative == None:
+        m = np.linalg.pinv(A)[0].reshape((window_size, -1))
+        return fftconvolve(Z, m, mode='valid')
+    elif derivative == 'col':
+        c = np.linalg.pinv(A)[1].reshape((window_size, -1))
+        return fftconvolve(Z, -c, mode='valid')
+    elif derivative == 'row':
+        r = np.linalg.pinv(A)[2].reshape((window_size, -1))
+        return fftconvolve(Z, -r, mode='valid')
+    elif derivative == 'both':
+        c = np.linalg.pinv(A)[1].reshape((window_size, -1))
+        r = np.linalg.pinv(A)[2].reshape((window_size, -1))
+        return fftconvolve(Z, -r, mode='valid'), fftconvolve(Z, -c, mode='valid')
+

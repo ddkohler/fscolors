@@ -1,3 +1,4 @@
-from . import fscolors
+#from . import fscolors
 from .fscolors import *
-from .cm import *
+from . import cm
+#from cm import *
